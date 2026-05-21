@@ -1,27 +1,37 @@
-# California Housing Price Prediction
+# California Housing Regression Lab
 
-A structured machine learning regression project focused on predicting California housing prices using classical linear models, thoughtful preprocessing, and feature engineering.
+A comprehensive machine learning regression project focused on predicting California housing prices using multiple regression approaches including:
 
-The goal of this project was not only to train models, but to understand how:
-- data distributions affect model behavior,
-- preprocessing influences optimization,
-- feature engineering improves signal quality,
-- and where linear regression begins to fail on nonlinear real-world data.
+- Linear Regression
+- Polynomial Regression
+- Ridge Regression
+- Lasso Regression
+- SGDRegressor
+- and upcoming tree-based & kernel-based models.
+
+The goal of this project is not only to improve prediction accuracy, but also to deeply understand:
+- preprocessing strategies,
+- feature engineering,
+- nonlinear learning,
+- optimization behavior,
+- regularization,
+- and practical machine learning experimentation workflows.
 
 ---
 
 # Project Objective
 
-The project aims to build a complete end-to-end regression workflow using the California Housing dataset.
+This project explores an end-to-end regression workflow using the California Housing dataset.
 
-Instead of focusing only on model accuracy, the project emphasizes:
+The focus is placed on:
 - Exploratory Data Analysis (EDA)
 - preprocessing strategy design
 - feature engineering
 - train/validation/test discipline
 - model comparison
 - optimization behavior
-- and practical ML reasoning
+- regularization
+- and understanding how different regression models behave on real-world nonlinear datasets.
 
 ---
 
@@ -57,6 +67,8 @@ Key observations:
 - `median_income` showed the strongest correlation with house prices
 - geographic features exhibited nonlinear clustered behavior
 - housing prices appeared capped near 500k
+
+These observations strongly suggested that simple linear models alone may not fully capture the underlying data relationships.
 
 ---
 
@@ -101,7 +113,7 @@ Created ratio-based features:
 - `bedrooms_per_room`
 - `population_per_household`
 
-These features provided more meaningful representations than raw count-based totals.
+These engineered features provided more meaningful representations than raw count-based totals.
 
 Observations:
 - reduced redundancy among highly correlated features
@@ -119,11 +131,12 @@ Applied:
 - One-Hot Encoding
 
 Used:
+
 ```python
 drop='first'
 ```
 
-to avoid multicollinearity in linear models.
+to avoid multicollinearity in linear-family models.
 
 ---
 
@@ -156,53 +169,136 @@ Used on relatively stable distributions to improve optimization efficiency.
 
 ---
 
-# Models Trained
+# Models Explored
 
-## Linear Regression
+## 1. Linear Regression
 
-Baseline model used to establish reference performance.
+Used as the baseline regression model.
 
-### Validation Metrics
-- MAE ≈ 49.8k
-- RMSE ≈ 70k
-- R² ≈ 0.623
+Observations:
+- performed reasonably on structured numerical features
+- struggled with nonlinear geographic relationships
+- showed limitations in capturing spatial clustering behavior
 
----
-
-## Ridge Regression
-
-Applied L2 regularization using `RidgeCV`.
-
-Observation:
-- negligible improvement over baseline regression
-- suggested coefficients were already relatively stable
+### Validation Performance
+- R² ≈ 0.62
 
 ---
 
-## Lasso Regression
+## 2. Polynomial Regression
 
-Applied L1 regularization using `LassoCV`.
+To capture nonlinear feature interactions, Polynomial Features (Degree 2) were introduced.
 
-Observation:
-- selected very small alpha
-- most engineered features already carried useful signal
+This allowed the model to learn:
+- interaction terms
+- quadratic relationships
+- nonlinear feature combinations
+
+Different polynomial degrees were tested:
+- Degree 1 behaved similarly to baseline regression
+- Degree 2 significantly improved performance
+- Degree 3 caused severe overfitting and instability
+
+Observations:
+- captured nonlinear geographic and income-based behavior effectively
+- significantly improved validation performance
+- demonstrated the importance of nonlinear feature interactions
+
+### Best Validation Performance
+- R² ≈ 0.663
 
 ---
 
-## SGDRegressor
+## 3. Polynomial + Ridge Regression
 
-Explored gradient descent optimization through:
+Applied Ridge Regression (L2 Regularization) on top of degree-2 polynomial features.
+
+Purpose:
+- stabilize correlated polynomial features
+- reduce coefficient explosion
+- improve generalization
+
+Multiple alpha values were tested:
+- 0.001
+- 0.01
+- 0.1
+- 1
+- 10
+- 100
+
+Observations:
+- produced the best overall validation performance
+- handled multicollinearity effectively
+- improved numerical stability
+
+### Best Validation Performance
+- R² ≈ 0.665
+
+### Final Test Performance
+- R² ≈ 0.646
+
+This became the best-performing classical regression model in the project.
+
+---
+
+## 4. Polynomial + Lasso Regression
+
+Applied Lasso Regression (L1 Regularization) on polynomial features.
+
+Purpose:
+- feature selection
+- coefficient sparsity
+- regularization under correlated interactions
+
+Observations:
+- performed similarly to Ridge Regression
+- convergence warnings appeared for very small alpha values
+- struggled more with correlated polynomial terms
+
+### Best Validation Performance
+- R² ≈ 0.664
+
+This experiment showed that aggressive sparsity constraints are not always ideal in highly correlated polynomial feature spaces.
+
+---
+
+## 5. Polynomial + SGDRegressor
+
+Explored iterative optimization using SGDRegressor.
+
+Experiments included:
 - learning rate tuning
-- regularization
-- epochs
-- learning schedules
+- regularization tuning
+- target scaling
+- convergence stabilization
 
-Used:
-- `RandomizedSearchCV`
+Initial runs suffered from:
+- exploding gradients
+- optimizer divergence
+- extremely unstable predictions
 
-Observation:
-- converged close to Linear Regression performance
-- optimization was not the main limitation
+To stabilize optimization:
+- target scaling was introduced
+- smaller learning rates were tested
+- regularization strength was tuned
+
+Observations:
+- optimization became stable after target scaling
+- SGD remained highly sensitive to hyperparameters
+- optimization quality alone could not outperform Ridge Regression
+
+### Best Validation Performance
+- R² ≈ 0.634
+
+This experiment highlighted the importance of optimization dynamics in gradient-based learning systems.
+
+---
+
+# Final Selected Model
+
+Best Overall Model:
+- Polynomial Features (Degree 2)
+- Ridge Regression (alpha = 1)
 
 ---
 
@@ -210,53 +306,83 @@ Observation:
 
 | Metric | Value |
 |---|---|
-| MAE | ~48.3k |
-| RMSE | ~69.8k |
-| R² Score | ~0.631 |
+| MAE | ~45.5k |
+| RMSE | ~67.9k |
+| R² Score | ~0.646 |
 
 The close agreement between validation and test metrics indicated:
-- stable generalization
+- good generalization
 - minimal leakage
-- and consistent preprocessing behavior
+- stable preprocessing
+- and successful nonlinear feature learning.
 
 ---
 
-# Major Learnings
+# Major Insights From The Project
 
-This project reinforced several important machine learning concepts:
+## Nonlinearity Matters
 
-- preprocessing quality strongly affects model performance
-- feature engineering can outperform model complexity
-- regularization is not universally beneficial
-- optimization improvements cannot overcome model capacity limitations
-- structured experimentation matters more than blindly switching algorithms
+EDA revealed that:
+- longitude and latitude showed clustered nonlinear relationships
+- housing prices were geographically dependent
+- simple linear models could not fully capture spatial behavior
 
-The project also improved practical intuition regarding:
-- skewed distributions
-- outlier handling
-- scaling strategies
-- regression workflows
-- and feature representation
+Polynomial feature expansion significantly improved learning capacity.
 
 ---
 
-# Important Insight
+## Feature Engineering Improved Representation
 
-One of the key observations from this project was:
+Ratio-based engineered features:
+- reduced redundancy
+- improved interpretability
+- and captured district-level housing characteristics more effectively.
 
-> Even strong optimization techniques cannot fully overcome the limitations of linear models when the underlying dataset contains nonlinear relationships.
+---
 
-The California housing dataset contains:
-- spatial clustering
-- nonlinear geographic behavior
-- complex feature interactions
-- and non-uniform distributions
+## More Complexity Is Not Always Better
 
-Although preprocessing and optimization improved convergence and stability, linear models eventually reached a performance ceiling because the hypothesis itself remained linear.
+Degree-3 polynomial expansion dramatically increased feature count and caused:
+- overfitting
+- instability
+- poor generalization
 
-This highlighted an important ML principle:
+This reinforced the importance of balancing model complexity and generalization.
 
-> Better optimization improves learning efficiency, but model architecture determines what patterns can actually be learned.
+---
+
+## Regularization Stabilizes Complex Feature Spaces
+
+Polynomial expansion introduced strong feature correlation.
+
+- Ridge Regression stabilized coefficients effectively.
+- Lasso Regression struggled more with correlated polynomial terms.
+
+This demonstrated why regularization becomes increasingly important as feature complexity grows.
+
+---
+
+## Optimization ≠ Model Capacity
+
+SGD experiments showed that:
+- optimization can fail even when the feature space is correct
+- learning rate selection is critical
+- stable optimization does not guarantee best performance
+
+This highlighted the difference between:
+- optimization quality
+- and representational capacity.
+
+---
+
+## Proper Experimental Discipline Matters
+
+The dataset was split before preprocessing to avoid leakage:
+- Train Set → fitting
+- Validation Set → tuning
+- Test Set → final evaluation
+
+This ensured realistic generalization measurement and cleaner experimentation.
 
 ---
 
@@ -272,22 +398,26 @@ This highlighted an important ML principle:
 
 # Future Improvements
 
-Possible next steps:
+Planned future experiments:
+- Support Vector Regression (SVR)
+- Decision Tree Regressor
 - Random Forest Regressor
 - Gradient Boosting
 - XGBoost
-- Spatial feature engineering
-- Cross-validation experiments
+- Cross-validation pipelines
 - Ensemble approaches
+- Spatial feature engineering
 
-Tree-based models may better capture nonlinear geographic relationships present in housing datasets.
+Tree-based and kernel-based models may better capture the nonlinear geographic relationships present in housing datasets.
 
 ---
 
 # Repository Structure
 
 ```text
-├── house-prices-predictor-linear-regression.ipynb
+├── 01_linear_regression.ipynb
+├── 02_polynomial_regression.ipynb
+├── 03_regularization_models.ipynb
 ├── README.md
 └── requirements.txt
 ```
@@ -327,5 +457,9 @@ This project was built as part of a deeper effort to understand:
 - machine learning workflows,
 - preprocessing pipelines,
 - feature engineering,
+- nonlinear learning,
 - optimization behavior,
+- regularization,
 - and practical regression modeling beyond tutorial-level implementation.
+
+The repository is being continuously expanded with additional regression models and experimentation workflows.
