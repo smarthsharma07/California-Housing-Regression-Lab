@@ -403,7 +403,6 @@ Planned future experiments:
 - Decision Tree Regressor
 - Random Forest Regressor
 - Gradient Boosting
-- XGBoost
 - Cross-validation pipelines
 - Ensemble approaches
 - Spatial feature engineering
@@ -415,11 +414,10 @@ Tree-based and kernel-based models may better capture the nonlinear geographic r
 # Repository Structure
 
 ```text
-├── 01_linear_regression.ipynb
-├── 02_polynomial_regression.ipynb
-├── 03_regularization_models.ipynb
+├── house-prices-linear_regression.ipynb
+├── house-prices-polynomial_regression.ipynb
 ├── README.md
-└── requirements.txt
+└── LICENSE
 ```
 
 ---
