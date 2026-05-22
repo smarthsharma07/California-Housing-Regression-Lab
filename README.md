@@ -385,6 +385,272 @@ The dataset was split before preprocessing to avoid leakage:
 This ensured realistic generalization measurement and cleaner experimentation.
 
 ---
+## 6. Support Vector Regression (SVR)
+
+After experimenting with:
+- Linear Regression
+- Polynomial Regression
+- Ridge/Lasso Regularization
+- SGD-based optimization
+
+the project moved toward kernel-based nonlinear learning using Support Vector Regression (SVR).
+
+Unlike traditional regression models that attempt to fit a single global equation, SVR learns through:
+- margin-based optimization
+- similarity relationships
+- nonlinear kernel transformations
+
+This allowed the model to better capture:
+- nonlinear geographic patterns
+- clustered housing behavior
+- local price relationships
+- nonlinear income interactions
+
+---
+
+### Target Transformation
+
+The target variable (`median_house_value`) showed:
+- strong right skewness
+- outlier-heavy behavior
+- artificial clipping near \$500,000
+
+To stabilize learning, a logarithmic transformation was applied:
+
+```python
+y_train_log = np.log1p(y_train)
+```
+
+Predictions were later restored using:
+
+```python
+np.expm1(predictions)
+```
+
+This significantly improved optimization stability and reduced the effect of extreme values.
+
+---
+
+## LinearSVR
+
+The first experiment used `LinearSVR` as a baseline margin-based regression model.
+
+Purpose:
+- compare linear-margin learning against standard linear regression
+- establish a kernel-free SVR baseline
+
+Observations:
+- captured some linear signal
+- struggled heavily with nonlinear geographic behavior
+- significantly underperformed compared to polynomial regression models
+
+### Validation Performance
+
+| Metric | Score |
+|---|---|
+| R² | ~0.22 |
+| MAE | ~52.9k |
+| RMSE | ~100.5k |
+
+This demonstrated that:
+
+> margin-based optimization alone is insufficient when the dataset contains strong nonlinear structure.
+
+---
+
+## RBF Kernel SVR
+
+To model nonlinear relationships more effectively, the Radial Basis Function (RBF) kernel was introduced.
+
+The RBF kernel works by measuring similarity between data points rather than fitting a single global linear equation.
+
+This enabled the model to learn:
+- local nonlinear relationships
+- clustered spatial behavior
+- nonlinear interactions automatically
+
+without manually engineering higher-order polynomial features.
+
+---
+
+## Hyperparameter Tuning (GridSearchCV)
+
+The RBF SVR model was tuned using `GridSearchCV`.
+
+Parameters explored:
+
+```python
+param_grid = {
+    'C': [1, 10, 100],
+    'gamma': ['scale', 0.1, 0.01],
+    'epsilon': [0.1, 0.2, 0.5]
+}
+```
+
+Cross-validation:
+- 3-fold CV
+- scoring metric: R²
+
+### Best Parameters
+
+```python
+{
+    'C': 10,
+    'epsilon': 0.1,
+    'gamma': 'scale'
+}
+```
+
+### Validation Performance
+
+| Metric | Score |
+|---|---|
+| R² | ~0.756 |
+| MAE | ~35.7k |
+| RMSE | ~56.3k |
+
+This produced a massive improvement over:
+- linear regression
+- polynomial regression
+- LinearSVR
+
+---
+
+## RandomizedSearchCV Tuned RBF SVR
+
+To further optimize the model while reducing computational cost, `RandomizedSearchCV` was introduced.
+
+Unlike exhaustive grid search, RandomizedSearchCV samples parameter combinations randomly, allowing:
+- broader exploration
+- faster experimentation
+- lower computational overhead
+
+while still achieving strong performance.
+
+### Best Parameters
+
+```python
+{
+    'gamma': 'scale',
+    'epsilon': 0.01,
+    'C': 5
+}
+```
+
+---
+
+## Final Validation Performance
+
+| Metric | Value |
+|---|---|
+| MAE | ~35266.1 |
+| RMSE | ~55285.21 |
+| R² Score | ~0.7654 |
+
+
+## Final Test Performance
+
+| Metric | Value |
+|---|---|
+| MAE | ~34.3k |
+| RMSE | ~53.3k |
+| R² Score | ~0.785 |
+
+This became the best-performing regression model in the project so far.
+
+---
+
+## Visualization Insights
+
+An Actual vs Predicted scatter plot showed:
+- strong alignment around the ideal prediction line
+- accurate mid-range house predictions
+- larger variance for expensive houses
+
+The visualization also revealed prediction flattening near \$500k due to:
+- target clipping within the California Housing dataset
+- missing true luxury-house values
+
+---
+
+## Major SVR Insights
+
+### Kernel Methods Capture Nonlinear Structure Effectively
+
+The RBF kernel successfully modeled:
+- nonlinear geographic relationships
+- local housing clusters
+- curved price behavior
+
+far better than global linear models.
+
+---
+
+### Similarity-Based Learning Outperformed Explicit Polynomial Expansion
+
+Polynomial Regression attempted to manually create nonlinear interactions.
+
+RBF SVR instead learned nonlinear behavior through:
+
+> similarity geometry between samples.
+
+This produced significantly better generalization.
+
+---
+
+### Computational Cost Increased Dramatically
+
+Kernel methods introduced:
+- heavy CPU usage
+- expensive cross-validation
+- slow hyperparameter tuning
+
+This highlighted an important real-world tradeoff between:
+- predictive performance
+- computational scalability
+
+---
+
+### Proper Experimental Discipline Was Critical
+
+The workflow strictly maintained:
+- Train Set → model fitting
+- Validation Set → tuning
+- Test Set → final evaluation
+
+This ensured:
+- minimal leakage
+- realistic performance estimates
+- reliable model comparison
+
+---
+
+# Updated Final Selected Model
+
+Best Overall Model:
+- RandomizedSearchCV Tuned RBF SVR
+- RBF Kernel
+- `C = 5`
+- `epsilon = 0.01`
+- `gamma = 'scale'`
+
+---
+
+# Updated Final Test Results
+
+| Metric | Value |
+|---|---|
+| MAE | ~34.3k |
+| RMSE | ~53.3k |
+| R² Score | ~0.785 |
+
+The close agreement between validation and test metrics indicated:
+- strong generalization
+- stable preprocessing
+- successful nonlinear learning
+- effective hyperparameter tuning
+
+---
 
 # Tech Stack
 
@@ -394,31 +660,6 @@ This ensured realistic generalization measurement and cleaner experimentation.
 - Matplotlib
 - Scikit-learn
 
----
-
-# Future Improvements
-
-Planned future experiments:
-- Support Vector Regression (SVR)
-- Decision Tree Regressor
-- Random Forest Regressor
-- Gradient Boosting
-- Cross-validation pipelines
-- Ensemble approaches
-- Spatial feature engineering
-
-Tree-based and kernel-based models may better capture the nonlinear geographic relationships present in housing datasets.
-
----
-
-# Repository Structure
-
-```text
-├── house-prices-linear_regression.ipynb
-├── house-prices-polynomial_regression.ipynb
-├── README.md
-└── LICENSE
-```
 
 ---
 
@@ -449,6 +690,32 @@ jupyter notebook
 
 ---
 
+# Future Improvements
+
+Planned future experiments:
+- Decision Tree Regressor
+- Random Forest Regressor
+- Gradient Boosting
+- XGBoost / LightGBM
+- Cross-validation pipelines
+- Ensemble approaches
+- Spatial feature engineering
+
+Tree-based and boosting models may further improve performance on nonlinear tabular housing datasets.
+
+---
+
+#  Repository Structure
+
+```text
+├── house-prices-linear_regression.ipynb
+├── house-prices-polynomial_regression.ipynb
+├── house-prices-svr-(rbf kernel).ipynb
+├── README.md
+└── LICENSE
+```
+---
+
 # Final Note
 
 This project was built as part of a deeper effort to understand:
@@ -459,5 +726,6 @@ This project was built as part of a deeper effort to understand:
 - optimization behavior,
 - regularization,
 - and practical regression modeling beyond tutorial-level implementation.
+  
 
 The repository is being continuously expanded with additional regression models and experimentation workflows.
