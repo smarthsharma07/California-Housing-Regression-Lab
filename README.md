@@ -294,30 +294,6 @@ This experiment highlighted the importance of optimization dynamics in gradient-
 
 ---
 
-# Final Selected Model
-
-Best Overall Model:
-- Polynomial Features (Degree 2)
-- Ridge Regression (alpha = 1)
-
----
-
-# Final Test Results
-
-| Metric | Value |
-|---|---|
-| MAE | ~45.5k |
-| RMSE | ~67.9k |
-| R² Score | ~0.646 |
-
-The close agreement between validation and test metrics indicated:
-- good generalization
-- minimal leakage
-- stable preprocessing
-- and successful nonlinear feature learning.
-
----
-
 # Major Insights From The Project
 
 ## Nonlinearity Matters
