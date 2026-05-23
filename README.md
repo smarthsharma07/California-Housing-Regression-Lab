@@ -911,36 +911,211 @@ where multiple trees are combined to improve stability and predictive performanc
 
 ---
 
+# 8. Random Forest Regression
+
+After observing the variance and instability limitations of standalone Decision Trees, the project moved toward ensemble-based tree learning using Random Forest Regression.
+
+Random Forest combines multiple Decision Trees through:
+
+* bagging (bootstrap aggregation)
+* random feature selection
+* ensemble averaging
+
+This significantly improves:
+
+* generalization
+* stability
+* nonlinear learning capability
+* and resistance to overfitting.
+
+The model naturally captures:
+
+* nonlinear feature interactions
+* geographic housing clusters
+* threshold-based pricing behavior
+* and local decision patterns.
+
+---
+
+# Preprocessing Strategy
+
+Although Random Forest models generally do not require feature scaling, the same preprocessing pipeline was reused for consistency across experiments.
+
+Applied preprocessing:
+
+* log transformations
+* RobustScaler
+* StandardScaler
+* engineered ratio-based features
+
+Experiments confirmed that scaling had minimal influence on Random Forest performance, reinforcing the scale-invariant behavior of tree-based ensemble models.
+
+---
+
+# Baseline Random Forest Regressor
+
+A baseline Random Forest Regressor was first trained using manually selected hyperparameters.
+
+## Validation Performance
+
+| Metric   | Score          |
+| -------- | -------------- |
+| R² Score | 0.8121         |
+| MSE      | 244795864.6166 |
+| RMSE     | 49476.8215     |
+| MAE      | 32504.3844     |
+
+## Observations
+
+* Random Forest significantly outperformed standalone Decision Trees and previous regression models.
+* Ensemble averaging reduced variance and improved stability.
+* The model captured nonlinear geographic and income-based relationships effectively.
+* Predictions generalized strongly across unseen validation samples.
+
+---
+
+# Hyperparameter Tuning Using RandomizedSearchCV
+
+To further improve performance, hyperparameter tuning was performed using `RandomizedSearchCV` with:
+
+* 5-fold cross-validation
+* randomized parameter exploration
+* R² scoring metric
+
+The tuning process explored:
+
+* tree depth
+* number of estimators
+* split constraints
+* leaf-node constraints
+* bootstrap behavior
+* and feature subset strategies.
+
+---
+
+## Best Hyperparameters
+
+```python
+{
+    'n_estimators': 200,
+    'min_samples_split': 5,
+    'min_samples_leaf': 2,
+    'max_features': 'sqrt',
+    'max_depth': 50,
+    'bootstrap': False
+}
+```
+
+---
+
+## Validation Set Performance
+
+| Metric   | Score          |
+| -------- | -------------- |
+| R² Score | 0.8199         |
+| MSE      | 234620856.8857 |
+| RMSE     | 48437.6771     |
+| MAE      | 31525.9869     |
+
+## Observations
+
+* Hyperparameter optimization improved all evaluation metrics.
+* Deep trees combined with controlled leaf sizes produced stronger nonlinear learning capability.
+* The tuned model demonstrated improved predictive accuracy while maintaining strong generalization performance.
+* `RandomizedSearchCV` efficiently explored a large hyperparameter space without exhaustive computation.
+
+---
+
+# Final Test Set Evaluation
+
+After model selection and tuning, the best Random Forest model was evaluated on the completely unseen test dataset.
+
+## Final Test Performance
+
+| Metric   | Score          |
+| -------- | -------------- |
+| R² Score | 0.8425         |
+| MSE      | 208207388.0138 |
+| RMSE     | 45629.7478     |
+| MAE      | 30453.5379     |
+
+---
+
+# Visualization Insights
+
+The Actual vs Predicted scatter plot showed:
+
+* strong clustering around the ideal prediction line
+* stable prediction behavior across most housing ranges
+* improved nonlinear approximation compared to previous models
+
+Some variance remained for extremely high-priced houses near the dataset ceiling around $500,000, which is expected due to target clipping within the dataset itself.
+
+---
+
+# Major Random Forest Insights
+
+## Ensemble Learning Greatly Improved Stability
+
+Unlike standalone Decision Trees, Random Forest:
+
+* reduced variance
+* improved consistency
+* and generalized far more effectively.
+
+---
+
+## Nonlinear Learning Was Captured Automatically
+
+The ensemble successfully learned:
+
+* nonlinear geographic behavior
+* local housing clusters
+* feature interactions
+* and threshold-based pricing patterns
+
+without requiring manual polynomial feature expansion.
+
+---
+
+## Hyperparameter Tuning Produced Meaningful Gains
+
+Randomized hyperparameter search improved:
+
+* prediction accuracy
+* generalization
+* and model robustness
+
+while remaining computationally manageable compared to exhaustive grid search.
+
+---
+
 # Updated Model Ranking
 
-Current performance hierarchy:
-
-1. Tuned RBF SVR
-2. Tuned Decision Tree Regressor
-3. Polynomial + Ridge Regression
-4. Polynomial + Lasso Regression
-5. Polynomial Regression
-6. SGDRegressor
-7. Linear Regression
-8. LinearSVR
-
----
-
-# Final Test Results
-
-| Metric | Value |
-|---|---|
-| MAE | ~34.3k |
-| RMSE | ~53.3k |
-| R² Score | ~0.785 |
-
-The close agreement between validation and test metrics indicated:
-- strong generalization
-- stable preprocessing
-- successful nonlinear learning
-- effective hyperparameter tuning
+1. Tuned Random Forest Regressor
+2. Baseline Random Forest Regressor
+3. Tuned RBF SVR
+4. Tuned Decision Tree Regressor
+5. Polynomial + Ridge Regression
+6. Polynomial + Lasso Regression
+7. Polynomial Regression
+8. SGDRegressor
+9. Linear Regression
+10. LinearSVR
 
 ---
+
+# Updated Best Overall Model
+
+Current Best Model:
+
+* Tuned Random Forest Regressor
+* `R² ≈ 0.8425`
+* strong nonlinear learning
+* ensemble-based stability
+* robust generalization performance
+
+
 
 # Tech Stack
 
@@ -983,12 +1158,9 @@ jupyter notebook
 # Future Improvements
 
 Planned future experiments:
-- Random Forest Regressor
 - Gradient Boosting
 - XGBoost / LightGBM
-- Cross-validation pipelines
-- Ensemble approaches
-- 
+   
 Tree-based and boosting models may further improve performance on nonlinear tabular housing datasets.
 
 ---
@@ -1000,6 +1172,7 @@ Tree-based and boosting models may further improve performance on nonlinear tabu
 ├── house-prices-polynomial_regression.ipynb
 ├── house-prices-svr-(rbf kernel).ipynb
 ├── house-prices-decisiontree.ipynb
+├── house-prices-randomforest.ipynb
 ├── README.md
 └── LICENSE
 ```
@@ -1016,5 +1189,3 @@ This project was built as part of a deeper effort to understand:
 - regularization,
 - and practical regression modeling beyond tutorial-level implementation.
   
-
-The repository is being continuously expanded with additional regression models and experimentation workflows.
