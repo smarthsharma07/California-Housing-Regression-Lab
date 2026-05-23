@@ -612,7 +612,321 @@ Best Overall Model:
 
 ---
 
-# Updated Final Test Results
+---
+
+# 7. Decision Tree Regression
+
+After exploring:
+- linear models
+- polynomial feature expansion
+- regularization techniques
+- and kernel-based SVR models
+
+the project moved toward tree-based nonlinear learning using Decision Tree Regression.
+
+Unlike linear-family models that learn continuous mathematical equations, Decision Trees learn through:
+- recursive feature splitting
+- threshold-based partitioning
+- piecewise prediction regions
+
+This allows trees to naturally capture:
+- nonlinear interactions
+- feature thresholds
+- clustered data behavior
+- and local decision boundaries.
+
+---
+
+## Why Decision Trees?
+
+The California Housing dataset contains:
+- nonlinear geographic relationships
+- clustered income behavior
+- varying local housing patterns
+
+Decision Trees are well-suited for:
+- nonlinear tabular learning
+- interpretable partition-based predictions
+- automatic interaction discovery
+- and feature-threshold learning.
+
+---
+
+# Preprocessing Strategy
+
+Even though Decision Trees generally do not require feature scaling, the same preprocessing pipeline from previous experiments was reused for consistency and experimentation.
+
+Applied preprocessing included:
+- log transformations
+- RobustScaler
+- StandardScaler
+- engineered ratio-based features
+
+Experiments confirmed that scaling had minimal impact on standalone tree performance.
+
+This reinforced an important ML concept:
+
+> Tree-based models are largely scale-invariant because they split using thresholds rather than distance-based optimization.
+
+---
+
+# Simple Decision Tree Regressor
+
+A baseline Decision Tree Regressor was first trained using manually selected regularization parameters.
+
+## Model Configuration
+
+```python
+DecisionTreeRegressor(
+    max_depth=10,
+    min_samples_split=10,
+    min_samples_leaf=5,
+    random_state=42
+)
+```
+
+---
+
+## Validation Performance
+
+| Metric | Value |
+|---|---|
+| MAE | ~40.4k |
+| RMSE | ~60.1k |
+| R² Score | ~0.723 |
+
+---
+
+## Observations
+
+The Decision Tree:
+- significantly outperformed Linear Regression
+- performed better than Polynomial Regression models
+- captured nonlinear structure effectively
+
+However:
+- predictions remained step-like
+- the model showed instability compared to SVR
+- smooth nonlinear approximation remained limited
+
+This demonstrated one of the core characteristics of Decision Trees:
+
+> Trees approximate nonlinear relationships using discrete partitions rather than continuous curves.
+
+---
+
+# Hyperparameter Tuning Using RandomizedSearchCV
+
+To improve generalization and reduce overfitting, extensive hyperparameter tuning was performed using `RandomizedSearchCV`.
+
+Unlike exhaustive grid search, randomized search:
+- explores larger parameter spaces efficiently
+- reduces computational cost
+- allows broader experimentation
+
+---
+
+## Cross-Validation Strategy
+
+Used:
+- 5-Fold Cross Validation
+- `scoring = "r2"`
+- `n_iter = 80`
+
+Importantly:
+- tuning occurred only on the training set
+- validation and test sets remained untouched
+
+This ensured:
+- minimal leakage
+- reliable generalization measurement
+- proper experimental discipline
+
+---
+
+## Parameters Explored
+
+```python
+param_dist = {
+    "max_depth": [5, 10, 15, 20, 30, None],
+    "min_samples_split": [2, 5, 10, 15, 20],
+    "min_samples_leaf": [1, 2, 4, 6, 8, 10],
+    "max_features": [None, "sqrt", "log2"],
+    "criterion": ["squared_error", "friedman_mse"],
+    "splitter": ["best", "random"],
+    "ccp_alpha": [0.0, 0.0001, 0.001, 0.01, 0.1]
+}
+```
+
+---
+
+## Best Parameters Found
+
+```python
+{
+    'min_samples_split': 5,
+    'min_samples_leaf': 10,
+    'max_features': None,
+    'max_depth': 10,
+    'criterion': 'squared_error'
+}
+```
+
+---
+
+## Validation Performance After Tuning
+
+| Metric | Value |
+|---|---|
+| MAE | ~39k |
+| RMSE | ~59k |
+| R² Score | ~0.731 |
+
+---
+
+## Important Insight
+
+Despite:
+- larger search spaces
+- pruning
+- cross-validation
+- regularization
+- and aggressive tuning
+
+performance improvements remained relatively small.
+
+This highlighted an important machine learning concept:
+
+> Sometimes model architecture becomes the bottleneck rather than hyperparameter tuning.
+
+The experiments showed that standalone Decision Trees possess:
+- limited smooth approximation ability
+- high variance
+- instability
+- and diminishing returns from aggressive tuning.
+
+---
+
+# Final Test Set Evaluation
+
+After selecting the best tuned Decision Tree model using validation performance, the model was evaluated on the completely unseen test dataset.
+
+The test set remained untouched during:
+- training
+- tuning
+- validation
+- model selection
+
+ensuring unbiased evaluation.
+
+---
+
+## Final Test Performance
+
+| Metric | Value |
+|---|---|
+| MAE | ~37.5k |
+| RMSE | ~55.9k |
+| R² Score | ~0.763 |
+
+---
+
+## Generalization Analysis
+
+Interestingly, the test performance slightly exceeded validation performance.
+
+This suggested:
+- strong generalization
+- successful regularization
+- limited overfitting
+- and stable preprocessing behavior
+
+The close agreement between validation and test metrics indicated that the tuning strategy generalized well beyond the validation split.
+
+---
+
+# Visualization Insights
+
+When visualizing predictions against `median_income`, the Decision Tree produced:
+- staircase-like prediction regions
+- abrupt jumps
+- flat prediction segments
+
+instead of smooth regression curves.
+
+This occurs because Decision Trees:
+- partition feature space into discrete regions
+- learn threshold-based rules
+- make piecewise constant predictions
+
+rather than learning continuous mathematical functions.
+
+The visualization provided a strong intuition for how trees fundamentally differ from:
+- linear regression
+- polynomial regression
+- and kernel-based SVR models.
+
+---
+
+# Major Decision Tree Insights
+
+## Nonlinear Learning Without Explicit Feature Expansion
+
+Unlike Polynomial Regression, Decision Trees automatically captured:
+- nonlinear interactions
+- threshold relationships
+- and local feature behavior
+
+without manually engineering higher-order polynomial terms.
+
+---
+
+## Tree Models Are Naturally Interpretable
+
+Decision Trees provide:
+- human-readable splits
+- explicit decision boundaries
+- transparent feature thresholding
+
+making them highly interpretable compared to kernel methods.
+
+---
+
+## Single Trees Have Structural Limitations
+
+Experiments showed that standalone trees:
+- are unstable learners
+- suffer from variance
+- and plateau in performance relatively quickly
+
+even after extensive hyperparameter tuning.
+
+This naturally motivates:
+- Random Forests
+- Gradient Boosting
+- XGBoost
+- LightGBM
+
+where multiple trees are combined to improve stability and predictive performance.
+
+---
+
+# Updated Model Ranking
+
+Current performance hierarchy:
+
+1. Tuned RBF SVR
+2. Tuned Decision Tree Regressor
+3. Polynomial + Ridge Regression
+4. Polynomial + Lasso Regression
+5. Polynomial Regression
+6. SGDRegressor
+7. Linear Regression
+8. LinearSVR
+
+---
+
+# Final Test Results
 
 | Metric | Value |
 |---|---|
@@ -669,14 +983,12 @@ jupyter notebook
 # Future Improvements
 
 Planned future experiments:
-- Decision Tree Regressor
 - Random Forest Regressor
 - Gradient Boosting
 - XGBoost / LightGBM
 - Cross-validation pipelines
 - Ensemble approaches
-- Spatial feature engineering
-
+- 
 Tree-based and boosting models may further improve performance on nonlinear tabular housing datasets.
 
 ---
@@ -687,6 +999,7 @@ Tree-based and boosting models may further improve performance on nonlinear tabu
 ├── house-prices-linear_regression.ipynb
 ├── house-prices-polynomial_regression.ipynb
 ├── house-prices-svr-(rbf kernel).ipynb
+├── house-prices-decisiontree.ipynb
 ├── README.md
 └── LICENSE
 ```
